@@ -6,7 +6,7 @@ import express from "express";
 import cors from "cors";
 import ConnectDB from "./db/Db.js";
 import pizzaRoutes from "./routes/PizzaRouter.js";
-
+import AuthRouter from "./routes/AuthRouter.js";
 const app = express();
 
 ConnectDB();
@@ -19,7 +19,7 @@ app.use(cors());
 
 // Routes
 app.use("/api/pizzas", pizzaRoutes);
-
+app.use("/api/auth", AuthRouter);
 app.get("/", (req, res) => {
   res.json({ message: "Hello" });
 });
