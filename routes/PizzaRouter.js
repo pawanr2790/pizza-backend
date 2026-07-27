@@ -1,9 +1,14 @@
 import express from "express";
-import { createPizza } from "../controllers/PizzaController.js";
+import {
+  createPizza,
+  getPizzas,
+  updatePizzaImage,
+} from "../controllers/PizzaController.js";
 import { upload } from "../middleware/multer.js";
 
 const router = express.Router();
 
-router.post("/", upload.single("image"), createPizza);
-
+router.post("/create", upload.single("image"), createPizza);
+router.get("/getAllPizza", getPizzas);
+router.put("/update-image/:id", upload.single("image"), updatePizzaImage);
 export default router;
