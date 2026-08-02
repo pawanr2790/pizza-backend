@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import Cart from "./Cart.js";
 
 const userSchema = new mongoose.Schema(
   {
@@ -17,10 +16,6 @@ const userSchema = new mongoose.Schema(
       default: "user",
     },
     password: { type: String, required: true },
-    cart: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Cart",
-    },
   },
   { timestamps: true },
 );

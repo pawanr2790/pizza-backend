@@ -16,6 +16,7 @@ export const addToCart = async (req, res) => {
 
     // Check if same pizza with same size already exists in cart
     const existingItem = await Cart.findOne({
+      user: req.user._id,
       pizza: pizzaId,
       size,
     });
@@ -33,6 +34,7 @@ export const addToCart = async (req, res) => {
 
     // Create new cart item
     const cart = await Cart.create({
+      user: req.user._id,
       pizza: pizza._id,
       name: pizza.name,
       image: pizza.image,
@@ -56,7 +58,7 @@ export const addToCart = async (req, res) => {
 
 export const getCart = async (req, res) => {
   try {
-    const cart = await Cart.find();
+    const cart = await Cart.find({ user: req.user._id });
 
     res.status(200).json({
       success: true,
@@ -74,7 +76,10 @@ export const deleteCartItem = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const deletedItem = await Cart.findByIdAndDelete(id);
+    const deletedItem = await Cart.findByIdAndDelete({
+      _id: id,
+      user: req.user._id,
+    });
 
     if (!deletedItem) {
       return res.status(404).json({
@@ -98,7 +103,7 @@ export const deleteCartItem = async (req, res) => {
 
 export const clearCart = async (req, res) => {
   try {
-    await Cart.deleteMany({});
+    await Cart.deleteMany({ user: req.user._id });
 
     res.status(200).json({
       success: true,
