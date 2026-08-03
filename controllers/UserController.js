@@ -179,15 +179,19 @@ export const deleteById = async (req, res) => {
 
 export const updateUser = async (req, res) => {
   try {
-    const { name, email } = req.body;
+    const { name, email, password } = req.body;
     const updateData = {};
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      updateData.password = hashedPassword;
+    }
 
     if (name) updateData.name = name;
     if (email) updateData.email = email;
 
     const user = await User.findByIdAndUpdate(req.user._id, updateData, {
-      new: true,
-    });
+      returnDocument: "after",
+    }).select("-password");
 
     return res.status(200).json({
       success: true,
