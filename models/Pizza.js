@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-
+import User from "./User.js";
 const pizzaSchema = new mongoose.Schema(
   {
     name: {
@@ -24,6 +24,11 @@ const pizzaSchema = new mongoose.Schema(
         type: Number,
         required: true,
       },
+    },
+    seller: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     },
   },
   {

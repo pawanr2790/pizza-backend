@@ -13,6 +13,7 @@ export const createPizza = async (req, res) => {
       name: req.body.name,
       prices: JSON.parse(req.body.prices),
       image: result.secure_url,
+      seller: req.user.id,
     });
 
     res.status(201).json(pizza);
@@ -27,6 +28,24 @@ export const createPizza = async (req, res) => {
 export const getPizzas = async (req, res) => {
   try {
     const pizzas = await Pizza.find();
+
+    res.status(200).json({
+      success: true,
+      count: pizzas.length,
+      pizzas,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch pizzas",
+      error: error.message,
+    });
+  }
+};
+
+export const getPizzasBySeller = async (req, res) => {
+  try {
+    const pizzas = await Pizza.find({ _id: req.user.id });
 
     res.status(200).json({
       success: true,

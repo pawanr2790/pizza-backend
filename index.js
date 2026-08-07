@@ -8,6 +8,7 @@ import ConnectDB from "./db/Db.js";
 import pizzaRoutes from "./routes/PizzaRouter.js";
 import CartRouter from "./routes/CartRouter.js";
 import UserRouter from "./routes/UserRoute.js";
+import OrderRouter from "./routes/OrderRouter.js";
 import cookieParser from "cookie-parser";
 const app = express();
 
@@ -29,6 +30,7 @@ app.use(cookieParser());
 app.use("/api/pizzas", pizzaRoutes);
 app.use("/api/cart", CartRouter);
 app.use("/api/user", UserRouter);
+app.use("/api/order", OrderRouter);
 
 app.get("/", (req, res) => {
   res.json({ message: "Hello" });
