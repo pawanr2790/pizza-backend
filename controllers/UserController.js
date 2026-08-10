@@ -6,7 +6,7 @@ import dotenv from "dotenv";
 
 export const registration = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, role } = req.body;
 
     // Check required fields
     if (!name || !email || !password) {
@@ -39,6 +39,7 @@ export const registration = async (req, res) => {
       name,
       email,
       password: hashedPassword,
+      role,
     });
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
@@ -57,6 +58,7 @@ export const registration = async (req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
+        role: user.role,
       },
     });
   } catch (error) {

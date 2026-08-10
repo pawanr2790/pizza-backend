@@ -10,6 +10,7 @@ const pizzaSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+   
 
     prices: {
       small: {
@@ -25,6 +26,8 @@ const pizzaSchema = new mongoose.Schema(
         required: true,
       },
     },
+
+    
     restaurant: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

@@ -58,8 +58,13 @@ export const addToCart = async (req, res) => {
 
 export const getCart = async (req, res) => {
   try {
-    const cart = await Cart.find({ user: req.user._id });
-
+    const cart = await Cart.find({ user: req.user._id }).populate({
+      path: "pizza",
+      populate: {
+        path: "restaurant",
+        select: "name",
+      },
+    });
     res.status(200).json({
       success: true,
       cart,

@@ -27,7 +27,7 @@ export const createPizza = async (req, res) => {
 
 export const getPizzas = async (req, res) => {
   try {
-    const pizzas = await Pizza.find();
+    const pizzas = await Pizza.find().populate("restaurant", "name");
 
     res.status(200).json({
       success: true,
