@@ -10,16 +10,17 @@ const orderSchema = new mongoose.Schema(
       required: true,
     },
 
+    restaurant: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+
     items: [
       {
         pizza: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "Pizza",
-          required: true,
-        },
-        seller: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "User",
           required: true,
         },
 

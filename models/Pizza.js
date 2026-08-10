@@ -25,7 +25,7 @@ const pizzaSchema = new mongoose.Schema(
         required: true,
       },
     },
-    seller: {
+    restaurant: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,

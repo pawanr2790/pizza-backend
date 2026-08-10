@@ -13,7 +13,7 @@ export const createPizza = async (req, res) => {
       name: req.body.name,
       prices: JSON.parse(req.body.prices),
       image: result.secure_url,
-      seller: req.user.id,
+      restaurant: req.user.id,
     });
 
     res.status(201).json(pizza);
@@ -43,10 +43,9 @@ export const getPizzas = async (req, res) => {
   }
 };
 
-export const getPizzasBySeller = async (req, res) => {
+export const getPizzasByrestaurant = async (req, res) => {
   try {
-    const pizzas = await Pizza.find({ _id: req.user.id });
-
+    const pizzas = await Pizza.find({ restaurant: req.user.id });
     res.status(200).json({
       success: true,
       count: pizzas.length,

@@ -6,38 +6,67 @@ import Order from "../models/Order.js";
 
 export const placeOrder = async (req, res) => {
   try {
-    const { address, phone, status } = req.body;
+    const { address, phone } = req.body;
     const cart = await Cart.find({ user: req.user.id });
-    if (!cart) return errorHandler(res, 400, "cart is not valid");
+    if (!cart.length) return errorHandler(res, 500, "cart is empty");
 
-    const orderItems = await Promise.all(
-      cart.map(async (item, index) => {
-        const pizza = await Pizza.findById(item.pizza);
+    const cartPizzaInfo = cart.map((pizzaInfo) => {
+      return {
+        pizza: pizzaInfo.pizza,
+        size: pizzaInfo.size,
+        quantity: pizzaInfo.quantity,
+        price: pizzaInfo.price,
+      };
+    });
+
+    const cartPizzaInfoWithRestaurant = await Promise.all(
+      cartPizzaInfo.map(async (cartItem) => {
+        const pizzaFullInfo = await Pizza.findById(cartItem.pizza);
+
         return {
-          pizza: pizza._id,
-          seller: pizza.seller || pizza._id,
-          size: item.size,
-          quantity: item.quantity,
-          price: item.price,
+          ...cartItem,
+          restaurant: pizzaFullInfo.restaurant,
         };
       }),
     );
 
-    const totalAmount = orderItems.reduce(
-      (total, item) => total + item.price * item.quantity,
-      0,
-    );
+    const restaurant = {};
 
-    const order = await Order.create({
-      user: req.user.id,
-      items: orderItems,
-      address,
-      phone,
-      totalAmount,
-      status,
+    cartPizzaInfoWithRestaurant.forEach((item) => {
+      const restaurantId = item.restaurant.toString();
+      if (!restaurant[restaurantId]) {
+        restaurant[restaurantId] = [];
+      }
+      restaurant[restaurantId].push({
+        pizza: item.pizza,
+        size: item.size,
+        quantity: item.quantity,
+        price: item.price,
+      });
     });
 
-    return successHandler(res, 200, "order successfully created", order);
+    let grandTotal = 0;
+
+    for (const restaurantId in restaurant) {
+      const items = restaurant[restaurantId];
+
+      const totalAmount = items.reduce((total, item) => {
+        return total + item.price * item.quantity;
+      }, 0);
+      grandTotal += totalAmount;
+
+      await Order.create({
+        user: req.user.id,
+        restaurant: restaurantId,
+        items,
+        address,
+        phone,
+        totalAmount,
+        status: "pending",
+      });
+    }
+
+    return successHandler(res, 200, "order successfully created");
   } catch (error) {
     console.log(error);
     return errorHandler(res, 500, error.message);
@@ -146,6 +175,44 @@ export const cancelOrder = async (req, res) => {
       success: true,
       message: "Order cancelled successfully",
       order,
+    });
+  } catch (error) {
+    console.log(error);
+    errorHandler(res, 500, error.message);
+  }
+};
+
+export const getOrdersByRestaurant = async (req, res) => {
+  try {
+    const orders = await Order.find({
+      restaurant: req.user.id,
+    }).sort({
+      createdAt: -1,
+    });
+
+    res.status(200).json({
+      success: true,
+      orders,
+    });
+  } catch (error) {
+    console.log(error);
+    errorHandler(res, 500, error.message);
+  }
+};
+
+export const deleteOrder = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return errorHandler(res, 404, "Order not found");
+    }
+
+    await Order.findByIdAndDelete(req.params.id);
+
+    res.status(200).json({
+      success: true,
+      message: "Order deleted successfully",
     });
   } catch (error) {
     console.log(error);
