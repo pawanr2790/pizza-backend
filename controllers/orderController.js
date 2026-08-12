@@ -13,6 +13,8 @@ export const placeOrder = async (req, res) => {
     const cartPizzaInfo = cart.map((pizzaInfo) => {
       return {
         pizza: pizzaInfo.pizza,
+        name: pizzaInfo.name,
+        image: pizzaInfo.image,
         size: pizzaInfo.size,
         quantity: pizzaInfo.quantity,
         price: pizzaInfo.price,
@@ -21,11 +23,14 @@ export const placeOrder = async (req, res) => {
 
     const cartPizzaInfoWithRestaurant = await Promise.all(
       cartPizzaInfo.map(async (cartItem) => {
-        const pizzaFullInfo = await Pizza.findById(cartItem.pizza);
-
+        const pizzaFullInfo = await Pizza.findById(cartItem.pizza).populate(
+          "restaurant",
+          "name",
+        );
         return {
           ...cartItem,
-          restaurant: pizzaFullInfo.restaurant,
+          restaurant: pizzaFullInfo.restaurant._id,
+          restaurantName: pizzaFullInfo.restaurant.name,
         };
       }),
     );
@@ -39,6 +44,9 @@ export const placeOrder = async (req, res) => {
       }
       restaurant[restaurantId].push({
         pizza: item.pizza,
+        name: item.name,
+        restaurantName: item.restaurantName,
+        image: item.image,
         size: item.size,
         quantity: item.quantity,
         price: item.price,
@@ -91,28 +99,6 @@ export const getMyOrders = async (req, res) => {
   }
 };
 
-// Get single order by id
-export const getOrderById = async (req, res) => {
-  try {
-    const order = await Order.findOne({
-      _id: req.params.id,
-      user: req.user._id,
-    });
-
-    if (!order) {
-      return errorHandler(res, 404, "Order not found");
-    }
-
-    res.status(200).json({
-      success: true,
-      order,
-    });
-  } catch (error) {
-    console.log(error);
-    errorHandler(res, 500, error.message);
-  }
-};
-
 // Admin get all orders
 export const getAllOrders = async (req, res) => {
   try {
@@ -133,12 +119,16 @@ export const getAllOrders = async (req, res) => {
 // Admin update order status
 export const updateOrderStatus = async (req, res) => {
   try {
-    const { status } = req.body;
+    const { status, id } = req.body;
 
-    const order = await Order.findById(req.params.id);
+    const order = await Order.findById(id);
 
     if (!order) {
       return errorHandler(res, 404, "Order not found");
+    }
+
+    if (order.status === "cancelled") {
+      return errorHandler(res, 404, "Order already cancelled");
     }
 
     order.status = status;
@@ -159,26 +149,32 @@ export const updateOrderStatus = async (req, res) => {
 export const cancelOrder = async (req, res) => {
   try {
     const order = await Order.findOne({
-      _id: req.params.id,
-      user: req.user._id,
+      _id: req.body.id,
+      user: req.user.id,
     });
 
     if (!order) {
       return errorHandler(res, 404, "Order not found");
     }
 
+    // User can cancel only pending or confirmed orders
+    if (!["pending", "confirmed"].includes(order.status)) {
+      return errorHandler(res, 400, "Order cannot be cancelled at this stage");
+    }
+
     order.status = "cancelled";
 
     await order.save();
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Order cancelled successfully",
       order,
     });
   } catch (error) {
     console.log(error);
-    errorHandler(res, 500, error.message);
+
+    return errorHandler(res, 500, error.message);
   }
 };
 
