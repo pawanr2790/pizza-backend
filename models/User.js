@@ -15,7 +15,17 @@ const userSchema = new mongoose.Schema(
       enum: ["user", "admin", "restaurant"],
       default: "user",
     },
-    password: { type: String, required: true },
+    password: { type: String },
+
+    authProvider: {
+      type: String,
+      enum: ["local", "google", "github"],
+      default: "local",
+    },
+
+    providerId: {
+      type: String,
+    },
   },
   { timestamps: true },
 );
